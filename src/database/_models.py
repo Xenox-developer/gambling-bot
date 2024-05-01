@@ -1,10 +1,9 @@
 from datetime import datetime
-import enum
 
-
-from sqlalchemy import BIGINT, Integer, TIMESTAMP, Float, String, func
+from sqlalchemy import BIGINT, TIMESTAMP, String, func, text
 from sqlalchemy.orm import Mapped, declarative_base, mapped_column
 from sqlalchemy import Enum
+from sqlalchemy.dialects.postgresql import ARRAY
 
 Base = declarative_base()
 
@@ -18,26 +17,26 @@ class User(Base):
     __tablename__ = 'users'
 
     id: Mapped[int] = mapped_column(BIGINT, primary_key=True)
-    balance: Mapped[float | None] = mapped_column(Float)
-    volume: Mapped[float | None] = mapped_column(Float)
+    balance: Mapped[float] = mapped_column(server_default=text('0'))
+    volume: Mapped[float] = mapped_column(server_default=text('0'))
     ref_id: Mapped[int | None] = mapped_column(BIGINT)
 
 
 class Wallet(Base):
     __tablename__ = 'wallets'
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(BIGINT, primary_key=True)
-    address: Mapped[str] = mapped_column(String(64))
-    seed: Mapped[str] = mapped_column(String(64))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(BIGINT)
+    address: Mapped[str] = mapped_column(String(48))
+    seed: Mapped[list[str] | None] = mapped_column(ARRAY(String))
 
 
 class Bet(Base):
     __tablename__ = 'bets'
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(BIGINT, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(BIGINT)
     start: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now())
     end: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now())
-    bet_type: Mapped[enum] = mapped_column(Enum(BetType))
-    profit: Mapped[float] = mapped_column(Float)
+    bet_type: Mapped[BetType | None]
+    profit: Mapped[float]
